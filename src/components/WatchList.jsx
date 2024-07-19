@@ -1,35 +1,49 @@
-import React, { useState } from "react";
-import genreids from '../Utility/genre';
-function WatchList({ watchlist,setWatchList ,handleRemoveFromWatchlist}) {
+import React, { useEffect, useState } from "react";
+import genreids from "../Utility/genre";
+function WatchList({ watchlist, setWatchList, handleRemoveFromWatchlist }) {
   const [search, setSearch] = useState("");
+  const [genreList, setGenreList] = useState(["All Genres"]);
+  const [currGenre,setCurrGenre]=useState('All Genres');
 
   let handleSearch = (e) => {
     setSearch(e.target.value);
   };
 
-  let sortIncreasing=()=>{
-    let sortedIncreasing= watchlist.sort((movieA,movieB)=>{
-      return movieA.vote_average-movieB.vote_average
-    })
-    setWatchList([...sortedIncreasing])
+  let sortIncreasing = () => {
+    let sortedIncreasing = watchlist.sort((movieA, movieB) => {
+      return movieA.vote_average - movieB.vote_average;
+    });
+    setWatchList([...sortedIncreasing]);
+  };
+
+  let sortDecreasing = () => {
+    let sortedDecreasing = watchlist.sort((movieA, movieB) => {
+      return movieB.vote_average - movieA.vote_average;
+    });
+    setWatchList([...sortedDecreasing]);
+  };
+
+  let handleFilter=(genre)=>{
+    setCurrGenre(genre)
   }
 
-
-  let sortDecreasing=()=>{
-    let sortedDecreasing=watchlist.sort((movieA,movieB)=>{
-      return movieB.vote_average-movieA.vote_average
+  useEffect(() => {
+    let temp = watchlist.map((movieObj) => {
+      return genreids[movieObj.genre_ids[0]];
     })
-    setWatchList([...sortedDecreasing])
-  }
+    temp =new Set(temp)
+    setGenreList(["All Genres", ...temp]);
+    console.log(temp);
+  }, [watchlist]);
+
   return (
     <>
       <div className="flex justify-center flex-wrap m-4">
-        <div className="bg-blue-400 flex justify-center items-center h-[2.5rem] w-[9rem] rounded-xl text-white font-bold mx-4 ">
-          Action
-        </div>
-        <div className="bg-gray-400/50 flex justify-center items-center h-[2.5rem] w-[9rem] rounded-xl text-white font-bold ">
-          Action
-        </div>
+        {genreList.map((genre) => {
+          return <div onClick={()=>handleFilter(genre)} className={currGenre==genre?"bg-blue-400 flex justify-center items-center h-[2.5rem] w-[8rem] rounded-xl text-white font-bold mx-2 ":"bg-gray-400/50 flex justify-center items-center h-[2.5rem] w-[9rem] rounded-xl text-white font-bold mx-4 "}>
+            {genre}
+          </div>;
+        })}
       </div>
 
       <div className="flex justify-center my-4">
@@ -48,9 +62,13 @@ function WatchList({ watchlist,setWatchList ,handleRemoveFromWatchlist}) {
             <tr>
               <th>Name</th>
               <th className="flex justify-center">
-                <div onClick={sortIncreasing} className="p-2"><i class="fa-solid fa-arrow-up"></i></div>
+                <div onClick={sortIncreasing} className="p-2">
+                  <i class="fa-solid fa-arrow-up"></i>
+                </div>
                 <div className="p-2">Ratings</div>
-                <div onClick={sortDecreasing} className="p-2"><i class="fa-solid fa-arrow-down"></i></div>
+                <div onClick={sortDecreasing} className="p-2">
+                  <i class="fa-solid fa-arrow-down"></i>
+                </div>
               </th>
               <th>Popularity</th>
               <th>Genre</th>
@@ -58,7 +76,13 @@ function WatchList({ watchlist,setWatchList ,handleRemoveFromWatchlist}) {
           </thead>
 
           <tbody>
-            {watchlist
+            {watchlist.filter((movieObj)=>{
+              if(currGenre=='All Genres'){
+                return true
+              }else{
+                return genreids[movieObj.genre_ids[0]]==currGenre
+              }
+            })
               .filter((movieObj) => {
                 return movieObj.title
                   .toLowerCase()
@@ -87,7 +111,6 @@ function WatchList({ watchlist,setWatchList ,handleRemoveFromWatchlist}) {
                         Delete
                       </button>
                     </td>
-
                   </tr>
                 );
               })}
